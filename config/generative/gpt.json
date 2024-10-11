@@ -1,0 +1,4 @@
+{
+    "type": "APIOpenAI",
+    "model": "gpt-4o-mini"
+}
