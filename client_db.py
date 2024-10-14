@@ -15,5 +15,11 @@ class ClientDB:
     def add_documents(self, docs: List[str], get_embedding: Callable[[str], ndarray]) -> None:
         self.db.add_documents(docs, get_embedding)
     
+    def delete_file(self, doc: str, get_embedding: Callable[[str], ndarray]) -> None:
+        self.db.delete_file(doc, get_embedding)
+    
     def retrieve_document(self, query: str, get_embedding: Callable[[str], ndarray]) -> str:
         return self.db.retrieve_document(query, get_embedding)
+    
+    def search(self, doc_embedding: List[Any]) -> str:
+        return self.db.search_file(doc_embedding)
