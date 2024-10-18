@@ -7,6 +7,7 @@ class Registry:
         """
         self.name: str = name
         self._module_dict: Dict[str, Type[Any]] = {}
+        self._instance_dict: Dict[str, Any] = {}
 
     def __repr__(self) -> str:
         """
@@ -40,11 +41,18 @@ class Registry:
             raise KeyError(f"{module_name} не найден в реестре {self.name}.")
         return self._module_dict[module_name]
 
-    def build(self, cfg: Dict[str, Any]) -> Any:
+    def build(self, cfg: Dict[str, Any] = None, singleton: bool = True) -> Any:
         """
-        Создание экземпляра класса на основе конфигурации.
-        Конфигурация должна содержать поле 'type', указывающее на имя класса.
+        Создание или получение экземпляра класса на основе конфигурации.
+        Если singleton=True, класс создаётся только один раз (синглтон).
+        Конфигурация должна содержать поле 'type', указывающее на имя класса при первом создании.
         """
+
+        if cfg is None:
+            if not self._instance_dict:
+                raise ValueError("Объект не создан. Необходимо передать конфигурацию при первом вызове.")
+            return next(iter(self._instance_dict.values()))
+
         if not isinstance(cfg, dict):
             raise TypeError(f"Конфигурация должна быть словарем, но получили {type(cfg)}")
         if 'type' not in cfg:
@@ -52,7 +60,13 @@ class Registry:
 
         module_name: str = cfg.pop('type')
         module_class: Type[Any] = self.get(module_name)
-        return module_class(**cfg)  # Создаем экземпляр класса с оставшимися параметрами
+
+        if singleton:
+            if module_name not in self._instance_dict:
+                self._instance_dict[module_name] = module_class(**cfg)
+            return self._instance_dict[module_name]
+
+        return module_class(**cfg)
 
 DB_REGISTRY = Registry('db')
 EMBEDDING_REGISTRY = Registry('embedder')

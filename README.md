@@ -3,9 +3,9 @@
 
 ## Run
 
-### weaviate
+### weaviate and postgres
 ```bash
-docker run -p 8080:8080 -p 50051:50051 --name weaviate cr.weaviate.io/semitechnologies/weaviate:1.26.6
+docker-compose up -d
 ```
 ### docs
 
@@ -32,9 +32,10 @@ python main.py question <cfg_db> <cfg_embeder> <cfg_generative> <question>
 
 ## Install
 
-### weaviate
+### weaviate and postgres
 ```bash
 docker pull cr.weaviate.io/semitechnologies/weaviate:1.26.6
+docker pull postgres:latest
 ```
 
 ### dependencies

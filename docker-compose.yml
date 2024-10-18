@@ -1,0 +1,39 @@
+version: '3.8'  # Версия Docker Compose
+
+services:
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.26.6
+    container_name: weaviate
+    ports:
+      - "8080:8080"  # Экспонирование порта Weaviate
+      - "50051:50051"  # gRPC порт Weaviate
+    environment:
+      - QUERY_DEFAULTS_LIMIT=20  # Пример переменной окружения (можно добавить свои настройки Weaviate)
+      - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
+    networks:
+      - weaviate-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=your_username
+      - POSTGRES_PASSWORD=your_password
+      - POSTGRES_DB=myapp
+    ports:
+      - "5432:5432"  # Экспонирование порта PostgreSQL
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Сохранение данных PostgreSQL
+    networks:
+      - weaviate-network
+    restart: unless-stopped
+
+# Определение сети
+networks:
+  weaviate-network:
+    driver: bridge
+
+# Определение тома для данных PostgreSQL
+volumes:
+  postgres_data:

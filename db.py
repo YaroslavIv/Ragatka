@@ -1,26 +1,26 @@
-from typing import Any, List, Callable
+from typing import List
 import weaviate
-from numpy import ndarray
 from abc import ABC, abstractmethod
 
-from registry import DB_REGISTRY
+from registry import DB_REGISTRY, EMBEDDING_REGISTRY
+from embedder import Embedder
 
 class DB(ABC):
 
     @abstractmethod
-    def add_documents(self, docs: List[str], get_embedding: Callable[[str], ndarray]) -> None:
+    def add_documents(self, docs: List[str]) -> None:
         pass
 
     @abstractmethod
-    def retrieve_document(self, query: str, get_embedding: Callable[[str], ndarray]) -> str:
+    def retrieve_document(self, query: str) -> str:
         pass
 
     @abstractmethod
-    def delete_file(self, doc: str, get_embedding: Callable[[str], ndarray]) -> None:
+    def delete_file(self, doc: str) -> None:
         pass
     
     @abstractmethod
-    def search_file(self, doc_embedding: List[Any], certainty: float) -> str:
+    def search_file(self, doc: str, certainty: float) -> str:
         pass
 
 @DB_REGISTRY.register_module
@@ -34,7 +34,9 @@ class WeaviateDB(DB):
 
         self.client = weaviate.Client(url=url)
         self.create(class_name)
-    
+        self.embedder: Embedder = EMBEDDING_REGISTRY.build()
+
+
     def create(self, class_name: str) -> None:
         self.class_name = class_name
         schema = self.client.schema.get()['classes']
@@ -50,21 +52,19 @@ class WeaviateDB(DB):
                 ]
             })
     
-    def add_documents(self, docs: List[str], get_embedding: Callable[[str], ndarray]) -> None:
+    def add_documents(self, docs: List[str]) -> None:
         for doc in docs:
-            doc_embedding = get_embedding(doc)
-
-            if len(self.search_file(doc_embedding)) == 0:
+            if len(self.search_file(doc)) == 0:
                 self.client.data_object.create(
                     class_name=self.class_name,
                     data_object={
                         "doc": doc
                     },
-                    vector=get_embedding(doc)
+                    vector=self.embedder.get_embedding(doc)
                 )
     
-    def retrieve_document(self, query: str, get_embedding: Callable[[str], ndarray]) -> str:
-        query_embedding = get_embedding(query)
+    def retrieve_document(self, query: str) -> str:
+        query_embedding = self.embedder.get_embedding(query)
 
         response = self.client.query.get(self.class_name, ["doc"]).with_near_vector({
             "vector": query_embedding.tolist(),
@@ -72,16 +72,16 @@ class WeaviateDB(DB):
         
         return response['data']['Get'][self.class_name][0]['doc'] if response['data']['Get'][self.class_name] else ''
     
-    def delete_file(self, doc: str, get_embedding: Callable[[str], ndarray]) -> None:
-        uuid = self.search_file(doc, get_embedding)
+    def delete_file(self, doc: str) -> None:
+        uuid = self.search_file(doc, self.embedder.get_embedding)
         
         if len(uuid) > 0:
             self.client.data_object.delete(uuid)
     
-    def search_file(self, doc_embedding: List[Any], certainty: float = 0.999) -> str:
+    def search_file(self, doc: str, certainty: float = 0.999) -> str:
 
         response = self.client.query.get(self.class_name, ["_additional { id }"]) \
-            .with_near_vector({"vector": doc_embedding, "certainty": certainty}) \
+            .with_near_vector({"vector": self.embedder.get_embedding(doc).tolist(), "certainty": certainty}) \
             .do()
 
         uuid = ''

@@ -28,6 +28,12 @@ def parse():
     question.add_argument('cfg_generative', help='path to config for init generative')
     question.add_argument('question')
 
+    chat = subparsers.add_parser('chat', help='ask a question')
+    chat.add_argument('cfg_db', help='path to config for init db')
+    chat.add_argument('cfg_embeder', help='path to config for init embeder')
+    chat.add_argument('cfg_generative', help='path to config for init generative')
+    chat.add_argument('cfg_chat', help='path to config for init chat')
+
     return parser
 
 if __name__ == '__main__':
@@ -36,27 +42,34 @@ if __name__ == '__main__':
     pipeline = RagPipeline()
 
     if args.command == 'question':
-        pipeline.init_db(read_json(args.cfg_db)) 
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
         pipeline.init_generative(read_json(args.cfg_generative)) 
+        pipeline.init_db(read_json(args.cfg_db))
 
         pipeline.query(args.question)
     
     elif args.command == 'add':
-        pipeline.init_db(read_json(args.cfg_db)) 
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
+        pipeline.init_db(read_json(args.cfg_db)) 
         
         pipeline.add_docs(read_files(args.path_folder))
     
     elif args.command == 'delete':
-        pipeline.init_db(read_json(args.cfg_db)) 
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
+        pipeline.init_db(read_json(args.cfg_db)) 
         
         pipeline.delete_file(read_file(args.path_file))
     elif args.command == 'search':
-        pipeline.init_db(read_json(args.cfg_db)) 
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
+        pipeline.init_db(read_json(args.cfg_db)) 
         
         pipeline.search(read_file(args.path_file))
+    if args.command == 'chat':
+        pipeline.init_embeder(read_json(args.cfg_embeder)) 
+        pipeline.init_generative(read_json(args.cfg_generative)) 
+        pipeline.init_db(read_json(args.cfg_db))
+        pipeline.init_chat(read_json(args.cfg_chat))
+        
+        pipeline.chat()
     else:
         parser.print_help()
