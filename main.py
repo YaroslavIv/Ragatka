@@ -1,7 +1,7 @@
 import argparse
 
 from rag import RagPipeline
-from utils import read_file, read_files, read_json
+from utils import read_txt_file, read_txt_files, read_json
 from authorization import Authorization
 
 def parse():
@@ -54,18 +54,18 @@ if __name__ == '__main__':
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
         pipeline.init_db(read_json(args.cfg_db)) 
         
-        pipeline.add_docs(read_files(args.path_folder))
+        pipeline.add_docs(read_txt_files(args.path_folder))
     
     elif args.command == 'delete':
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
         pipeline.init_db(read_json(args.cfg_db)) 
         
-        pipeline.delete_file(read_file(args.path_file))
+        pipeline.delete_file(read_txt_file(args.path_file))
     elif args.command == 'search':
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
         pipeline.init_db(read_json(args.cfg_db)) 
         
-        pipeline.search(read_file(args.path_file))
+        pipeline.search(read_txt_file(args.path_file))
     if args.command == 'chat':
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
         pipeline.init_generative(read_json(args.cfg_generative)) 

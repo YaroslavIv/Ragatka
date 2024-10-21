@@ -7,7 +7,7 @@ from flask_cors import CORS
 
 from authorization import Authorization
 from registry import DB_REGISTRY, AUTH_DB_REGISTRY
-from utils import read_file
+from utils import read_txt_file, read_pdf_file
 from db import DB
 
 class ClientDB:
@@ -31,7 +31,7 @@ class ClientDB:
         if not os.path.exists(self.UPLOAD_FOLDER):
             os.makedirs(self.UPLOAD_FOLDER)
 
-        self.ALLOWED_EXTENSIONS = set(self.front_config.get('ALLOWED_EXTENSIONS', ['txt']))
+        self.ALLOWED_EXTENSIONS = set(self.front_config.get('ALLOWED_EXTENSIONS', ['txt', 'pdf']))
 
         self.app = Flask(__name__)
         self.app.config['UPLOAD_FOLDER'] = self.UPLOAD_FOLDER
@@ -61,9 +61,12 @@ class ClientDB:
                     filename = file.filename
                     file.save(os.path.join(self.app.config['UPLOAD_FOLDER'], filename))
                     saved_files.append(filename)
+                    
+                    if file.filename[-3:] == 'txt':
+                        docs.append(read_txt_file(os.path.join(self.app.config['UPLOAD_FOLDER'], filename)))
+                    elif file.filename[-3:] == 'pdf':
+                        docs += read_pdf_file(os.path.join(self.app.config['UPLOAD_FOLDER'], filename))
 
-                    docs.append(read_file(os.path.join(self.app.config['UPLOAD_FOLDER'], filename)))
-            
             uuids = self.add_documents(docs)
             AUTH_DB_REGISTRY.build().add_docs(user_id, uuids)
 

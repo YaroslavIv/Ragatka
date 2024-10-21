@@ -48,11 +48,8 @@ class RagPipeline:
                 self.socketio.emit('error', {'error': 'Invalid JWT token'})
                 return
 
-            print(f'user_id: {user_id}')
             uuids = AUTH_DB_REGISTRY.build().get_docs(user_id)
-            print(f'uuids: {uuids}')
             result = self.query(msg['text'], uuids)
-            print(f'result: {result}')
             self.socketio.emit('message', result)
 
         except Exception as e:
