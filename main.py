@@ -2,6 +2,7 @@ import argparse
 
 from rag import RagPipeline
 from utils import read_file, read_files, read_json
+from authorization import Authorization
 
 def parse():
     parser = argparse.ArgumentParser(prog='RAGATKA')
@@ -33,6 +34,7 @@ def parse():
     chat.add_argument('cfg_embeder', help='path to config for init embeder')
     chat.add_argument('cfg_generative', help='path to config for init generative')
     chat.add_argument('cfg_chat', help='path to config for init chat')
+    chat.add_argument('cfg_auth', help='path to config for init auth')
 
     return parser
 
@@ -68,8 +70,8 @@ if __name__ == '__main__':
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
         pipeline.init_generative(read_json(args.cfg_generative)) 
         pipeline.init_db(read_json(args.cfg_db))
+        pipeline.init_auth(read_json(args.cfg_auth))
         pipeline.init_chat(read_json(args.cfg_chat))
-        
         pipeline.chat()
     else:
         parser.print_help()

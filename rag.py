@@ -1,11 +1,12 @@
 
 from flask import Flask
-from typing import Dict, List
+from typing import Any, Dict, List
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import threading
 
-from registry import EMBEDDING_REGISTRY, GENERATIVE_MODEL_REGISTRY
+from authorization import Authorization
+from registry import AUTH_DB_REGISTRY, EMBEDDING_REGISTRY, GENERATIVE_MODEL_REGISTRY
 from client_db import ClientDB
 from embedder import Embedder
 from generative import Generative
@@ -22,6 +23,9 @@ class RagPipeline:
     
     def init_generative(self, cfg_generative: Dict[str, str]) -> None:
         self.generative : Generative = GENERATIVE_MODEL_REGISTRY.build(cfg_generative)
+    
+    def init_auth(self, cfg_auth: Dict[str, Any]) -> None:
+        self.auth = Authorization(cfg_auth)
 
     def init_chat(self, cfg_chat: Dict[str, str]) -> None:
         self.host = cfg_chat['HOST']
@@ -37,13 +41,25 @@ class RagPipeline:
             self.socketio.start_background_task(self.process_heavy_task, msg)
 
     def process_heavy_task(self, msg):
-        result = self.query(msg)
-        print('Send')
-        self.socketio.emit('message', result)
+        try:
+            token = msg.get('token')
+            user_id = self.auth.verify_jwt(" " + token) 
+            if not user_id:
+                self.socketio.emit('error', {'error': 'Invalid JWT token'})
+                return
 
-    def query(self, query: str) -> str:
-        retrieved_doc = self.client_db.retrieve_document(query)
+            print(f'user_id: {user_id}')
+            uuids = AUTH_DB_REGISTRY.build().get_docs(user_id)
+            print(f'uuids: {uuids}')
+            result = self.query(msg['text'], uuids)
+            print(f'result: {result}')
+            self.socketio.emit('message', result)
 
+        except Exception as e:
+            self.socketio.emit('error', {'error': str(e)})
+
+    def query(self, query: str, uuids: List[str]) -> str:
+        retrieved_doc = self.client_db.retrieve_document(query, uuids)
         print(f'retrieved_doc: {retrieved_doc}')
         print(f'query: {query}')
         generatived_text = self.generative.generative_text(retrieved_doc, query)

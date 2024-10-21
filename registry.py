@@ -69,5 +69,6 @@ class Registry:
         return module_class(**cfg)
 
 DB_REGISTRY = Registry('db')
+AUTH_DB_REGISTRY = Registry('auth_db')
 EMBEDDING_REGISTRY = Registry('embedder')
 GENERATIVE_MODEL_REGISTRY = Registry('generative')

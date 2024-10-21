@@ -6,7 +6,7 @@
         "UPLOAD_FOLDER": "./uploads",
         "ALLOWED_EXTENSIONS": ["txt"],
         "HOST": "0.0.0.0",
-        "PORT": 5000,
+        "PORT": 5001,
         "RUN": true
     }
 }

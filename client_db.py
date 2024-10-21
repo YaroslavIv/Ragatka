@@ -1,9 +1,12 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from flask import Flask, request, jsonify
 import threading
 import os
 
-from registry import DB_REGISTRY
+from flask_cors import CORS
+
+from authorization import Authorization
+from registry import DB_REGISTRY, AUTH_DB_REGISTRY
 from utils import read_file
 from db import DB
 
@@ -33,17 +36,19 @@ class ClientDB:
         self.app = Flask(__name__)
         self.app.config['UPLOAD_FOLDER'] = self.UPLOAD_FOLDER
 
-        self.add_routes()
-    
-    def allowed_file(self, filename: str) -> bool:
-        return '.' in filename and filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
-    
-    def add_routes(self) -> None:
+        CORS(self.app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True, expose_headers='Authorization')
+        
         @self.app.route('/api/upload', methods=['POST'])
         def upload_files():
             if 'files' not in request.files:
                 return jsonify({'error': 'No file part in the request'}), 400
 
+            token = request.headers.get('Authorization')
+            user_id = Authorization().get_instance().verify_jwt(token)
+            if not user_id:
+                return jsonify({'error': 'Invalid JWT token'}), 400
+                
+            
             files = request.files.getlist('files')
 
             if not files or len(files) == 0:
@@ -59,14 +64,18 @@ class ClientDB:
 
                     docs.append(read_file(os.path.join(self.app.config['UPLOAD_FOLDER'], filename)))
             
-            self.add_documents(docs)
+            uuids = self.add_documents(docs)
+            AUTH_DB_REGISTRY.build().add_docs(user_id, uuids)
 
             return jsonify({'message': 'Files uploaded successfully', 'files': saved_files}), 200
+    
+    def allowed_file(self, filename: str) -> bool:
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
 
     def run_flask(self) -> None:
         if self.front_config:
             host = self.front_config.get('HOST', '0.0.0.0')
-            port = self.front_config.get('PORT', 5000)
+            port = self.front_config.get('PORT', 5001)
             self.app.run(host=host, port=port)
         else:
             print("Flask сервер не запущен, так как секция 'front' отсутствует в конфигурации")
@@ -78,14 +87,14 @@ class ClientDB:
         else:
             print("Flask сервер не запущен, так как секция 'front' отсутствует в конфигурации")
 
-    def add_documents(self, docs: List[str]) -> None:
-        self.db.add_documents(docs)
+    def add_documents(self, docs: List[str]) -> Optional[List[str]]:
+        return self.db.add_documents(docs)
     
     def delete_file(self, doc: str) -> None:
         self.db.delete_file(doc)
     
-    def retrieve_document(self, query: str) -> str:
-        return self.db.retrieve_document(query)
+    def retrieve_document(self, query: str, uuids: List[str]) -> str:
+        return self.db.retrieve_document(query, uuids)
     
     def search(self, doc: str) -> str:
         return self.db.search_file(doc)

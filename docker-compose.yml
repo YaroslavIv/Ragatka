@@ -1,14 +1,14 @@
-version: '3.8'  # Версия Docker Compose
+version: '3.8'
 
 services:
   weaviate:
     image: cr.weaviate.io/semitechnologies/weaviate:1.26.6
     container_name: weaviate
     ports:
-      - "8080:8080"  # Экспонирование порта Weaviate
-      - "50051:50051"  # gRPC порт Weaviate
+      - "8080:8080"
+      - "50051:50051"
     environment:
-      - QUERY_DEFAULTS_LIMIT=20  # Пример переменной окружения (можно добавить свои настройки Weaviate)
+      - QUERY_DEFAULTS_LIMIT=20
       - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
     networks:
       - weaviate-network
@@ -22,18 +22,17 @@ services:
       - POSTGRES_PASSWORD=your_password
       - POSTGRES_DB=myapp
     ports:
-      - "5432:5432"  # Экспонирование порта PostgreSQL
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Сохранение данных PostgreSQL
+      - postgres_data:/var/lib/postgresql/data  # Для сохранения данных PostgreSQL
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql  # Монтируем файл init.sql
     networks:
       - weaviate-network
     restart: unless-stopped
 
-# Определение сети
 networks:
   weaviate-network:
     driver: bridge
 
-# Определение тома для данных PostgreSQL
 volumes:
   postgres_data:

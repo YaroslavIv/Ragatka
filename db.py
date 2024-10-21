@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import weaviate
 from abc import ABC, abstractmethod
 
@@ -8,11 +8,11 @@ from embedder import Embedder
 class DB(ABC):
 
     @abstractmethod
-    def add_documents(self, docs: List[str]) -> None:
+    def add_documents(self, docs: List[str]) -> Optional[List[str]]:
         pass
 
     @abstractmethod
-    def retrieve_document(self, query: str) -> str:
+    def retrieve_document(self, query: str, uuids: List[str]) -> str:
         pass
 
     @abstractmethod
@@ -52,24 +52,38 @@ class WeaviateDB(DB):
                 ]
             })
     
-    def add_documents(self, docs: List[str]) -> None:
+    def add_documents(self, docs: List[str]) -> Optional[List[str]]:
+        uuids = []
         for doc in docs:
             if len(self.search_file(doc)) == 0:
-                self.client.data_object.create(
+                uuid = self.client.data_object.create(
                     class_name=self.class_name,
                     data_object={
                         "doc": doc
                     },
                     vector=self.embedder.get_embedding(doc)
                 )
+                uuids.append(uuid)
+        return uuids
     
-    def retrieve_document(self, query: str) -> str:
+    def retrieve_document(self, query: str, uuids: List[str]) -> str:
         query_embedding = self.embedder.get_embedding(query)
+
+        where_filter = {
+            "operator": "Or",
+            "operands": [
+                {
+                    "path": ["id"],
+                    "operator": "Equal",
+                    "valueString": uuid
+                } for uuid in uuids
+            ]
+        }
 
         response = self.client.query.get(self.class_name, ["doc"]).with_near_vector({
             "vector": query_embedding.tolist(),
-        }).do()
-        
+        }).with_where(where_filter).do()
+
         return response['data']['Get'][self.class_name][0]['doc'] if response['data']['Get'][self.class_name] else ''
     
     def delete_file(self, doc: str) -> None:
