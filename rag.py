@@ -49,18 +49,20 @@ class RagPipeline:
                 return
 
             uuids = AUTH_DB_REGISTRY.build().get_docs(user_id)
-            result = self.query(msg['text'], uuids)
+            result = self.query(msg['text'], msg['chat'], uuids)
             self.socketio.emit('message', result)
 
         except Exception as e:
             self.socketio.emit('error', {'error': str(e)})
 
-    def query(self, query: str, uuids: List[str]) -> str:
-        retrieved_doc = self.client_db.retrieve_document(query, uuids)
+    def query(self, query: str, chat: str, uuids: List[str]) -> str:
+        # retrieved_doc = self.client_db.retrieve_document(query, uuids)
+        retrieved_doc = ''
         print(f'retrieved_doc: {retrieved_doc}')
         print(f'query: {query}')
-        generatived_text = self.generative.generative_text(retrieved_doc, query)
+        print(f'chat: {chat}')
 
+        generatived_text = self.generative.generative_text(chat, retrieved_doc, query)
         print(f'generatived_text: {generatived_text}')
 
         return generatived_text
