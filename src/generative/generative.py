@@ -1,4 +1,4 @@
-import torch
+from typing import List
 import transformers
 from openai import OpenAI
 from abc import ABC, abstractmethod
@@ -8,7 +8,7 @@ from registry import GENERATIVE_MODEL_REGISTRY
 class Generative(ABC):
 
     @abstractmethod
-    def generative_text(self, chat: str, doc: str, question: str, max_length_doc: int = 1024) -> str:
+    def generative_text(self, chat: str, docs: List[str], question: str, max_length_doc: int = 1024) -> str:
         pass
 
 
@@ -35,11 +35,12 @@ class APIOpenAI(Generative):
         if len(self.history) > self.max_history_length:
             self.history.pop(0)
 
-    def generative_text(self, chat: str, doc: str, question: str, max_length_doc: int = 1024) -> str:
+    def generative_text(self, chat: str, docs: List[str], question: str, max_length_doc: int = 1024) -> str:
         self.add_to_history(chat, "user", question)
 
-        if len(doc) > 0:
-            self.add_to_history(chat, "user", doc)
+        for doc in docs: 
+            if len(doc) > 0:
+                self.add_to_history(chat, "user", doc)
         
         response = self.client.chat.completions.create(
             model=self.model,
@@ -85,7 +86,7 @@ class Transformers(Generative):
         if len(self.history) > self.max_history_length:
             self.history.pop(0)
 
-    def generative_text(self, chat: str, doc: str, question: str, max_length_doc: int = 1024) -> str:
+    def generative_text(self, chat: str, docs: List[str], question: str, max_length_doc: int = 1024) -> str:
         """
         Генерирует ответ с учётом истории диалога.
         :param question: Вопрос пользователя
@@ -95,8 +96,9 @@ class Transformers(Generative):
 
         self.add_to_history(chat, "user", question)
 
-        if len(doc) > 0:
-            self.add_to_history(chat, "user", doc)
+        for doc in docs: 
+            if len(doc) > 0:
+                self.add_to_history(chat, "user", doc)
         
         prompt = self.pipeline.tokenizer.apply_chat_template(
             self.history[chat], tokenize=False, add_generation_prompt=True

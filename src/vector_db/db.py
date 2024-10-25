@@ -12,7 +12,7 @@ class DB(ABC):
         pass
 
     @abstractmethod
-    def retrieve_document(self, query: str, uuids: List[str]) -> str:
+    def retrieve_document(self, query: str, uuids: List[str], max_retrieve_document: int) -> List[str]:
         pass
 
     @abstractmethod
@@ -66,7 +66,7 @@ class WeaviateDB(DB):
                 uuids.append(uuid)
         return uuids
     
-    def retrieve_document(self, query: str, uuids: List[str]) -> str:
+    def retrieve_document(self, query: str, uuids: List[str], max_retrieve_document: int) -> List[str]:
         query_embedding = self.embedder.get_embedding(query)
 
         where_filter = {
@@ -84,7 +84,9 @@ class WeaviateDB(DB):
             "vector": query_embedding.tolist(),
         }).with_where(where_filter).do()
 
-        return response['data']['Get'][self.class_name][0]['doc'] if response['data']['Get'][self.class_name] else ''
+        response = response['data']['Get'][self.class_name]
+        
+        return [data['doc'] for data in response[:max_retrieve_document] if 'doc' in data] if response else ['']
     
     def delete_file(self, doc: str) -> None:
         uuid = self.search_file(doc, self.embedder.get_embedding)

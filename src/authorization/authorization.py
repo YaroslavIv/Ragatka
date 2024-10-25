@@ -1,5 +1,5 @@
 from registry import AUTH_DB_REGISTRY
-from authorization_db import AuthDB
+from authorization.db import AuthDB
 
 import os
 import threading

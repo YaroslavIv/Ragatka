@@ -30,6 +30,12 @@ python main.py search <cfg_db> <cfg_embeder> <path_file>
 python main.py question <cfg_db> <cfg_embeder> <cfg_generative> <question>
 ```
 
+### chat
+
+```bash
+python main.py chat <cfg_db> <cfg_embeder> <cfg_generative> <cfg_chat> <cfg_auth>
+```
+
 ## Install
 
 ### weaviate and postgres

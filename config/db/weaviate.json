@@ -4,7 +4,7 @@
     "class_name": "Document",
     "front": {
         "UPLOAD_FOLDER": "./uploads",
-        "ALLOWED_EXTENSIONS": ["txt"],
+        "ALLOWED_EXTENSIONS": ["txt", "pdf"],
         "HOST": "0.0.0.0",
         "PORT": 5001,
         "RUN": true

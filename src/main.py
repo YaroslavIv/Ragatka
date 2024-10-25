@@ -1,8 +1,7 @@
 import argparse
 
 from rag import RagPipeline
-from utils import read_txt_file, read_txt_files, read_json
-from authorization import Authorization
+from utils.read import read_txt_file, read_txt_files, read_json
 
 def parse():
     parser = argparse.ArgumentParser(prog='RAGATKA')

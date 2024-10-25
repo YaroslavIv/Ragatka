@@ -37,6 +37,7 @@ def read_txt_files(path_folder: str) -> List[str]:
     for file_name in os.listdir(path_folder):
         doc = read_txt_file(f'{path_folder}/{file_name}')
         if len(doc) > 0:
+
             docs.append(doc)
     
     return docs

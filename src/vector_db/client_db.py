@@ -8,7 +8,7 @@ from flask_cors import CORS
 from authorization import Authorization
 from registry import DB_REGISTRY, AUTH_DB_REGISTRY
 from utils import read_txt_file, read_pdf_file
-from db import DB
+from vector_db.db import DB
 
 class ClientDB:
     def __init__(
@@ -96,8 +96,8 @@ class ClientDB:
     def delete_file(self, doc: str) -> None:
         self.db.delete_file(doc)
     
-    def retrieve_document(self, query: str, uuids: List[str]) -> str:
-        return self.db.retrieve_document(query, uuids)
+    def retrieve_document(self, query: str, uuids: List[str], max_retrieve_document: int) -> List[str]:
+        return self.db.retrieve_document(query, uuids, max_retrieve_document)
     
     def search(self, doc: str) -> str:
         return self.db.search_file(doc)
