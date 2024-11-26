@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.10'
 
 services:
   weaviate:
@@ -24,11 +24,38 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Для сохранения данных PostgreSQL
-      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql  # Монтируем файл init.sql
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - weaviate-network
     restart: unless-stopped
+
+  python_app:
+    build:
+      context: ./src  # Путь к папке с Dockerfile
+    container_name: python_app
+    stdin_open: true
+    env_file:
+      - .env
+    environment:
+      CFG_DB: /config/db/weaviate.json
+      CFG_EMBEDER: /config/embedder/sentence-transformers/paraphrase_MiniLM_L6_v2.json
+      CFG_GENERATIVE: /config/generative/meta_llama_Llama_3.2_1B_Instruct.json
+      CFG_CHAT: /config/chat/default.json
+      CFG_AUTH: /config/auth/default.json
+    command: sh
+    # command: python main.py chat ${CFG_DB} ${CFG_EMBEDER} ${CFG_GENERATIVE} ${CFG_CHAT} ${CFG_AUTH}
+    volumes:
+      - ./config:/config 
+    depends_on:
+      - weaviate
+      - postgres
+    ports:
+      - "4000:4000"  # Проброс порта 4000
+      - "5000:5000"  # Проброс порта 5000
+      - "5001:5001"  # Проброс порта 5001
+    networks:
+      - weaviate-network
 
 networks:
   weaviate-network:

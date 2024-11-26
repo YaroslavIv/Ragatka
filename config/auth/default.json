@@ -7,7 +7,7 @@
         "dbname": "myapp",
         "user": "your_username",
         "password": "your_password",
-        "host": "localhost",
+        "host": "postgres",
         "port": 5432
     }
 }

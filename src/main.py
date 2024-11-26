@@ -1,7 +1,7 @@
 import argparse
 
 from rag import RagPipeline
-from utils.read import read_txt_file, read_txt_files, read_json
+from utils import read_txt_file, read_txt_files, read_json, init_huggingface_hub
 
 def parse():
     parser = argparse.ArgumentParser(prog='RAGATKA')
@@ -38,6 +38,8 @@ def parse():
     return parser
 
 if __name__ == '__main__':
+    init_huggingface_hub()
+
     parser = parse()
     args = parser.parse_args()
     pipeline = RagPipeline()

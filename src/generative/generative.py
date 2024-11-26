@@ -2,7 +2,7 @@ from typing import List
 import transformers
 from openai import OpenAI
 from abc import ABC, abstractmethod
-
+import torch
 from registry import GENERATIVE_MODEL_REGISTRY
 
 class Generative(ABC):

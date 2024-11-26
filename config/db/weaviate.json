@@ -1,6 +1,6 @@
 {
     "type": "WeaviateDB",
-    "url": "http://localhost:8080",
+    "url": "http://weaviate:8080",
     "class_name": "Document",
     "front": {
         "UPLOAD_FOLDER": "./uploads",
