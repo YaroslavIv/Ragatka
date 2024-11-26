@@ -96,6 +96,9 @@ class ClientDB:
     def delete_file(self, doc: str) -> None:
         self.db.delete_file(doc)
     
+    def delete(self) -> None:
+        self.db.delete()
+    
     def retrieve_document(self, query: str, uuids: List[str], max_retrieve_document: int) -> List[str]:
         return self.db.retrieve_document(query, uuids, max_retrieve_document)
     

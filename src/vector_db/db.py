@@ -23,6 +23,10 @@ class DB(ABC):
     def search_file(self, doc: str, certainty: float) -> str:
         pass
 
+    @abstractmethod
+    def delete(self) -> None:
+        pass
+
 @DB_REGISTRY.register_module
 class WeaviateDB(DB):
     def __init__(
@@ -51,6 +55,9 @@ class WeaviateDB(DB):
                     }
                 ]
             })
+    
+    def delete(self) -> None:
+        self.client.schema.delete_class(self.class_name)
     
     def add_documents(self, docs: List[str]) -> Optional[List[str]]:
         uuids = []

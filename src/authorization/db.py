@@ -30,6 +30,10 @@ class AuthDB(ABC):
     def get_docs(self, user_id: int) -> List[str]:
         pass
 
+    @abstractmethod
+    def delete_docs(self) -> None:
+        pass
+
 @AUTH_DB_REGISTRY.register_module
 class PostgreSQL(AuthDB):
     def __init__(self, **cfg_db: Dict[str, Any]) -> None:
@@ -153,3 +157,8 @@ class PostgreSQL(AuthDB):
         self.close()
         
         return [row[0] for row in result] if result else []
+
+    def delete_docs(self) -> None:
+        self.connect()
+        self.execute_query("DELETE FROM docs;")
+        self.close()

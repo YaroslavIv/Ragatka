@@ -107,3 +107,6 @@ class Authorization:
         }
         token = jwt.encode(payload, self.app.config['SECRET_KEY'], algorithm='HS256')
         return token
+
+    def delete_docs(self) -> None:
+        self.db.delete_docs()

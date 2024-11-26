@@ -1,7 +1,9 @@
+from typing import Any, Dict
 import torch
 from numpy import ndarray
 from abc import ABC, abstractmethod
 from transformers import AutoTokenizer, AutoModel
+import sentence_transformers
 
 from registry import EMBEDDING_REGISTRY
 
@@ -23,3 +25,11 @@ class Auto(Embedder):
             outputs = self.model(**inputs)
             embedding = outputs.last_hidden_state.mean(dim=1)
         return embedding.squeeze().numpy()
+
+@EMBEDDING_REGISTRY.register_module
+class SentenceTransformer(Embedder):
+    def __init__(self, model: str, **args: Dict[str, Any]) -> None:
+        self.model = sentence_transformers.SentenceTransformer(model, **args)
+    
+    def get_embedding(self, doc: str) -> ndarray:
+        return self.model.encode(doc)

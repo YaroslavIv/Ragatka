@@ -1,0 +1,5 @@
+{
+    "type": "SentenceTransformer",
+    "model": "jxm/cde-small-v1",
+    "trust_remote_code": true
+}

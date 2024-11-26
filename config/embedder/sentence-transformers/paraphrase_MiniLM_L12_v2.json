@@ -1,0 +1,5 @@
+{
+    "type": "Auto",
+    "tokenizer": "sentence-transformers/paraphrase-MiniLM-L12-v2",
+    "model": "sentence-transformers/paraphrase-MiniLM-L12-v2"
+}
