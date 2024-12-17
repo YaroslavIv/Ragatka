@@ -1,6 +1,7 @@
 import argparse
 
 from rag import RagPipeline
+from registry import AUTH_DB_REGISTRY
 from utils import read_txt_file, read_txt_files, read_json, init_huggingface_hub
 
 def parse():
@@ -10,7 +11,9 @@ def parse():
     add = subparsers.add_parser('add', help='add docs')
     add.add_argument('cfg_db', help='path to config for init db')
     add.add_argument('cfg_embeder', help='path to config for init embeder')
+    add.add_argument('cfg_auth', help='path to config for init auth')
     add.add_argument('path_folder', help='path to files for rag')
+    add.add_argument('user_id', help='user id')
     
     delete = subparsers.add_parser('delete', help='delete file')
     delete.add_argument('cfg_db', help='path to config for init db')
@@ -54,8 +57,11 @@ if __name__ == '__main__':
     elif args.command == 'add':
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
         pipeline.init_db(read_json(args.cfg_db)) 
+        pipeline.init_auth(read_json(args.cfg_auth))
         
-        pipeline.add_docs(read_txt_files(args.path_folder))
+        uuids = pipeline.add_docs(read_txt_files(args.path_folder))
+        AUTH_DB_REGISTRY.build().add_docs(args.user_id, uuids)
+        
     
     elif args.command == 'delete':
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
@@ -67,7 +73,7 @@ if __name__ == '__main__':
         pipeline.init_db(read_json(args.cfg_db)) 
         
         pipeline.search(read_txt_file(args.path_file))
-    if args.command == 'chat':
+    elif args.command == 'chat':
         pipeline.init_embeder(read_json(args.cfg_embeder)) 
         pipeline.init_generative(read_json(args.cfg_generative)) 
         pipeline.init_db(read_json(args.cfg_db))

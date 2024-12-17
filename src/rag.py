@@ -1,6 +1,6 @@
 
 from flask import Flask
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import threading
@@ -70,8 +70,8 @@ class RagPipeline:
 
         return generatived_text
 
-    def add_docs(self, docs: List[str]) -> None:
-        self.client_db.add_documents(docs)
+    def add_docs(self, docs: List[str]) -> Optional[List[str]]:
+        return self.client_db.add_documents(docs)
     
     def delete_file(self, doc: str) -> None:
         self.client_db.delete_file(doc)
